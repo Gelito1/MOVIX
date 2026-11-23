@@ -1,0 +1,846 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Pillar 1 / Safety Net: Default deny everything unless explicitly matched below
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // =========================================================================
+    // Phase 3: Reusable Hardened Global Primitives
+    // =========================================================================
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isVerifiedOwner(userId) {
+      return isVerifiedUser() && request.auth.uid == userId;
+    }
+
+    function isBootstrappedAdmin() {
+      return isVerifiedUser() && request.auth.token.email == 'gelitontn1@gmail.com';
+    }
+
+    function isAdmin() {
+      return isBootstrappedAdmin() || (
+        isVerifiedUser() &&
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function hasValidProfileParent(userId) {
+      return exists(/databases/$(database)/documents/users/$(userId));
+    }
+
+    function hasValidProfileParentAfter(userId) {
+      return existsAfter(/databases/$(database)/documents/users/$(userId));
+    }
+
+    function isOptionalString(data, key, maxLen) {
+      return !(key in data) || (data[key] is string && data[key].size() <= maxLen);
+    }
+
+    function isOptionalNonNegInt(data, key) {
+      return !(key in data) || (data[key] is int && data[key] >= 0);
+    }
+
+    function isOptionalNonNegNumber(data, key) {
+      return !(key in data) || (data[key] is number && data[key] >= 0);
+    }
+
+    // =========================================================================
+    // Pillar 2: Validation Blueprints (synchronized with firebase-blueprint.json)
+    // =========================================================================
+    function isValidUserProfile(data, userId) {
+      return data.keys().hasAll([
+          'uid', 'displayName', 'photoURL', 'preferredLanguage',
+          'notificationsEnabled', 'termsAccepted', 'termsVersion',
+          'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'uid', 'displayName', 'photoURL', 'preferredLanguage',
+          'notificationsEnabled', 'termsAccepted', 'termsVersion',
+          'createdAt', 'updatedAt'
+        ])
+        && data.uid is string
+        && data.uid.size() >= 1
+        && data.uid.size() <= 128
+        && data.uid.matches('^[a-zA-Z0-9_\\-]+$')
+        && data.uid == userId
+        && data.displayName is string
+        && data.displayName.size() >= 1
+        && data.displayName.size() <= 80
+        && data.photoURL is string
+        && data.photoURL.size() <= 500
+        && data.preferredLanguage is string
+        && data.preferredLanguage.size() >= 2
+        && data.preferredLanguage.size() <= 10
+        && data.preferredLanguage in ['pt-BR', 'pt-PT', 'en', 'es-419', 'es-ES', 'fr', 'it']
+        && data.notificationsEnabled is bool
+        && data.termsAccepted is bool
+        && data.termsVersion is string
+        && data.termsVersion.size() >= 1
+        && data.termsVersion.size() <= 20
+        && data.termsVersion.matches('^[a-zA-Z0-9._\\-]+$')
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidUserPrivateInfo(data, userId) {
+      return data.keys().hasAll(['uid', 'email', 'provider', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'email', 'provider', 'createdAt', 'updatedAt'])
+        && data.uid is string
+        && data.uid.size() >= 1
+        && data.uid.size() <= 128
+        && data.uid.matches('^[a-zA-Z0-9_\\-]+$')
+        && data.uid == userId
+        && data.email is string
+        && data.email.size() >= 3
+        && data.email.size() <= 254
+        && data.provider is string
+        && data.provider.size() >= 1
+        && data.provider.size() <= 20
+        && data.provider in ['google', 'password']
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidUserFavorite(data, userId) {
+      return data.keys().hasAll([
+          'uid', 'tmdbId', 'mediaType', 'title', 'posterUrl',
+          'year', 'rating', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'uid', 'tmdbId', 'mediaType', 'title', 'posterUrl',
+          'year', 'rating', 'createdAt', 'updatedAt'
+        ])
+        && data.uid is string
+        && data.uid.size() >= 1
+        && data.uid.size() <= 128
+        && data.uid.matches('^[a-zA-Z0-9_\\-]+$')
+        && data.uid == userId
+        && data.tmdbId is int
+        && data.tmdbId >= 1
+        && data.mediaType is string
+        && data.mediaType.size() >= 2
+        && data.mediaType.size() <= 10
+        && data.mediaType in ['movie', 'tv']
+        && data.title is string
+        && data.title.size() >= 1
+        && data.title.size() <= 200
+        && data.posterUrl is string
+        && data.posterUrl.size() <= 500
+        && data.year is string
+        && data.year.size() <= 10
+        && data.rating is number
+        && data.rating >= 0
+        && data.rating <= 10
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidSupportTicket(data) {
+      return data.keys().hasAll(['uid', 'category', 'message', 'status', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'category', 'message', 'status', 'createdAt', 'updatedAt'])
+        && data.uid is string
+        && data.uid.size() >= 1
+        && data.uid.size() <= 128
+        && data.uid.matches('^[a-zA-Z0-9_\\-]+$')
+        && data.category is string
+        && data.category.size() >= 1
+        && data.category.size() <= 20
+        && data.category in ['login', 'reproducao', 'conta', 'legal', 'outro']
+        && data.message is string
+        && data.message.size() >= 5
+        && data.message.size() <= 1000
+        && data.status is string
+        && data.status.size() >= 4
+        && data.status.size() <= 16
+        && data.status in ['open', 'resolved']
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidSystemPublicConfig(data) {
+      return data.keys().hasAll([
+          'platformName', 'logoUrl', 'faviconUrl', 'primaryColor',
+          'heroTagline', 'seoTitle', 'seoDescription', 'defaultLanguage',
+          'maintenanceMode', 'adsGlobalEnabled', 'dismissCooldownMinutes',
+          'largeAdIntervalMinutes', 'playerAdIntervalMinutes',
+          'headerAdAlwaysVisible', 'updatedBy', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'platformName', 'logoUrl', 'faviconUrl', 'primaryColor',
+          'heroTagline', 'seoTitle', 'seoDescription', 'seoKeywords',
+          'aboutUs', 'privacyPolicy', 'termsOfUse', 'contactEmail',
+          'contactPhone', 'socialInstagram', 'socialYoutube',
+          'socialTelegram', 'socialTwitter', 'defaultLanguage',
+          'maintenanceMode', 'adsGlobalEnabled', 'dismissCooldownMinutes',
+          'largeAdIntervalMinutes', 'playerAdIntervalMinutes',
+          'headerAdAlwaysVisible', 'updatedBy', 'updatedAt'
+        ])
+        && data.platformName is string
+        && data.platformName.size() >= 1
+        && data.platformName.size() <= 80
+        && data.logoUrl is string
+        && data.logoUrl.size() <= 500
+        && data.faviconUrl is string
+        && data.faviconUrl.size() <= 500
+        && data.primaryColor is string
+        && data.primaryColor.size() <= 20
+        && data.heroTagline is string
+        && data.heroTagline.size() <= 200
+        && data.seoTitle is string
+        && data.seoTitle.size() <= 160
+        && data.seoDescription is string
+        && data.seoDescription.size() <= 400
+        && isOptionalString(data, 'seoKeywords', 300)
+        && isOptionalString(data, 'aboutUs', 5000)
+        && isOptionalString(data, 'privacyPolicy', 8000)
+        && isOptionalString(data, 'termsOfUse', 8000)
+        && isOptionalString(data, 'contactEmail', 120)
+        && isOptionalString(data, 'contactPhone', 40)
+        && isOptionalString(data, 'socialInstagram', 500)
+        && isOptionalString(data, 'socialYoutube', 500)
+        && isOptionalString(data, 'socialTelegram', 500)
+        && isOptionalString(data, 'socialTwitter', 500)
+        && data.defaultLanguage is string
+        && data.defaultLanguage.size() >= 2
+        && data.defaultLanguage.size() <= 10
+        && data.defaultLanguage in ['pt-BR', 'pt-PT', 'en', 'es-419', 'es-ES', 'fr', 'it']
+        && data.maintenanceMode is bool
+        && data.adsGlobalEnabled is bool
+        && data.dismissCooldownMinutes is int
+        && data.dismissCooldownMinutes >= 1
+        && data.dismissCooldownMinutes <= 1440
+        && data.largeAdIntervalMinutes is int
+        && data.largeAdIntervalMinutes >= 0
+        && data.largeAdIntervalMinutes <= 1440
+        && data.playerAdIntervalMinutes is int
+        && data.playerAdIntervalMinutes >= 0
+        && data.playerAdIntervalMinutes <= 1440
+        && data.headerAdAlwaysVisible is bool
+        && data.updatedBy is string
+        && data.updatedBy.size() >= 1
+        && data.updatedBy.size() <= 128
+        && data.updatedBy.matches('^[a-zA-Z0-9_\\-]+$')
+        && data.updatedBy == request.auth.uid
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidPublicAd(data, adId) {
+      return data.keys().hasAll([
+          'id', 'name', 'title', 'description', 'format', 'mediaKind',
+          'imageUrl', 'videoUrl', 'destinationUrl', 'ctaText', 'status',
+          'priority', 'placements', 'devices', 'autoplay', 'startMuted',
+          'skippable', 'skipAfterSeconds', 'durationSeconds',
+          'frequencyPerSession', 'updatedBy', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'name', 'title', 'description', 'format', 'mediaKind',
+          'imageUrl', 'videoUrl', 'destinationUrl', 'ctaText', 'status',
+          'priority', 'placements', 'devices', 'autoplay', 'startMuted',
+          'skippable', 'skipAfterSeconds', 'durationSeconds',
+          'frequencyPerSession', 'startDate', 'endDate', 'maxImpressions',
+          'targetAudience', 'countries', 'impressions', 'clicks',
+          'videoViews', 'videoCompletes', 'videoPartials',
+          'totalWatchSeconds', 'createdAtIso', 'updatedBy', 'updatedAt'
+        ])
+        && data.id is string
+        && data.id.size() >= 1
+        && data.id.size() <= 128
+        && data.id.matches('^[a-zA-Z0-9_\\-]+$')
+        && data.id == adId
+        && data.name is string
+        && data.name.size() >= 1
+        && data.name.size() <= 160
+        && data.title is string
+        && data.title.size() <= 200
+        && data.description is string
+        && data.description.size() <= 600
+        && data.format is string
+        && data.format.size() >= 1
+        && data.format.size() <= 40
+        && data.mediaKind is string
+        && data.mediaKind.size() >= 5
+        && data.mediaKind.size() <= 5
+        && data.mediaKind in ['image', 'video']
+        && data.imageUrl is string
+        && data.imageUrl.size() <= 1000
+        && data.videoUrl is string
+        && data.videoUrl.size() <= 1000
+        && data.destinationUrl is string
+        && data.destinationUrl.size() <= 1000
+        && data.ctaText is string
+        && data.ctaText.size() <= 80
+        && data.status is string
+        && data.status.size() >= 5
+        && data.status.size() <= 12
+        && data.status in ['active', 'paused', 'scheduled', 'expired', 'draft']
+        && data.priority is int
+        && data.priority >= 1
+        && data.priority <= 100
+        && data.placements is list
+        && data.placements.size() >= 1
+        && data.placements.size() <= 20
+        && data.placements[0] is string
+        && data.devices is list
+        && data.devices.size() >= 1
+        && data.devices.size() <= 6
+        && data.devices[0] is string
+        && data.autoplay is bool
+        && data.startMuted is bool
+        && data.skippable is bool
+        && data.skipAfterSeconds is int
+        && data.skipAfterSeconds >= 0
+        && data.skipAfterSeconds <= 120
+        && data.durationSeconds is int
+        && data.durationSeconds >= 1
+        && data.durationSeconds <= 300
+        && data.frequencyPerSession is int
+        && data.frequencyPerSession >= 1
+        && data.frequencyPerSession <= 100
+        && isOptionalString(data, 'startDate', 40)
+        && isOptionalString(data, 'endDate', 40)
+        && (!('maxImpressions' in data) || data.maxImpressions == null || (data.maxImpressions is int && data.maxImpressions >= 0))
+        && isOptionalString(data, 'targetAudience', 200)
+        && (!('countries' in data) || (data.countries is list && data.countries.size() <= 50 && (data.countries.size() == 0 || data.countries[0] is string)))
+        && isOptionalNonNegInt(data, 'impressions')
+        && isOptionalNonNegInt(data, 'clicks')
+        && isOptionalNonNegInt(data, 'videoViews')
+        && isOptionalNonNegInt(data, 'videoCompletes')
+        && isOptionalNonNegInt(data, 'videoPartials')
+        && isOptionalNonNegNumber(data, 'totalWatchSeconds')
+        && isOptionalString(data, 'createdAtIso', 40)
+        && data.updatedBy is string
+        && data.updatedBy.size() >= 1
+        && data.updatedBy.size() <= 128
+        && data.updatedBy.matches('^[a-zA-Z0-9_\\-]+$')
+        && data.updatedBy == request.auth.uid
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidPublicCatalogList(data, listId) {
+      return data.keys().hasAll(['listId', 'items', 'itemCount', 'updatedBy', 'updatedAt'])
+        && data.keys().hasOnly(['listId', 'items', 'itemCount', 'updatedBy', 'updatedAt'])
+        && data.listId is string
+        && data.listId.size() >= 1
+        && data.listId.size() <= 32
+        && data.listId == listId
+        && data.listId in ['banners', 'highlights', 'categories', 'genres', 'servers']
+        && data.items is list
+        && data.items.size() <= 100
+        && (data.items.size() == 0 || data.items[0] is map)
+        && data.itemCount is int
+        && data.itemCount >= 0
+        && data.itemCount <= 100
+        && data.itemCount == data.items.size()
+        && data.updatedBy is string
+        && data.updatedBy.size() >= 1
+        && data.updatedBy.size() <= 128
+        && data.updatedBy.matches('^[a-zA-Z0-9_\\-]+$')
+        && data.updatedBy == request.auth.uid
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidPublicMovie(data, movieId) {
+      return data.keys().hasAll([
+          'id', 'title', 'originalTitle', 'overview', 'posterUrl',
+          'backdropUrl', 'trailerUrl', 'releaseDate', 'year', 'runtime',
+          'language', 'certification', 'rating', 'categories', 'genres',
+          'servers', 'featured', 'recommended', 'published', 'views',
+          'createdAtIso', 'updatedBy', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'tmdbId', 'title', 'originalTitle', 'overview', 'posterUrl',
+          'backdropUrl', 'trailerUrl', 'releaseDate', 'year', 'runtime',
+          'language', 'certification', 'rating', 'categories', 'genres',
+          'servers', 'featured', 'recommended', 'published', 'views',
+          'createdAtIso', 'updatedBy', 'updatedAt'
+        ])
+        && data.id is string
+        && data.id.size() >= 1
+        && data.id.size() <= 128
+        && data.id.matches('^[a-zA-Z0-9_\\-]+$')
+        && data.id == movieId
+        && (!('tmdbId' in data) || data.tmdbId == null || (data.tmdbId is int && data.tmdbId >= 1))
+        && data.title is string
+        && data.title.size() >= 1
+        && data.title.size() <= 160
+        && data.originalTitle is string
+        && data.originalTitle.size() <= 160
+        && data.overview is string
+        && data.overview.size() <= 3000
+        && data.posterUrl is string
+        && data.posterUrl.size() <= 1000
+        && data.backdropUrl is string
+        && data.backdropUrl.size() <= 1000
+        && data.trailerUrl is string
+        && data.trailerUrl.size() <= 600
+        && data.releaseDate is string
+        && data.releaseDate.size() <= 25
+        && data.year is string
+        && data.year.size() <= 10
+        && data.runtime is int
+        && data.runtime >= 0
+        && data.runtime <= 1000
+        && data.language is string
+        && data.language.size() <= 30
+        && data.certification is string
+        && data.certification.size() <= 16
+        && data.rating is number
+        && data.rating >= 0
+        && data.rating <= 10
+        && data.categories is list
+        && data.categories.size() <= 12
+        && (data.categories.size() == 0 || data.categories[0] is string)
+        && data.genres is list
+        && data.genres.size() <= 12
+        && (data.genres.size() == 0 || data.genres[0] is string)
+        && data.servers is list
+        && data.servers.size() <= 20
+        && (data.servers.size() == 0 || data.servers[0] is map)
+        && data.featured is bool
+        && data.recommended is bool
+        && data.published is bool
+        && data.views is int
+        && data.views >= 0
+        && data.createdAtIso is string
+        && data.createdAtIso.size() <= 40
+        && data.updatedBy is string
+        && data.updatedBy.size() >= 1
+        && data.updatedBy.size() <= 128
+        && data.updatedBy.matches('^[a-zA-Z0-9_\\-]+$')
+        && data.updatedBy == request.auth.uid
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidPublicSeries(data, seriesId) {
+      return data.keys().hasAll([
+          'id', 'title', 'originalTitle', 'overview', 'posterUrl',
+          'backdropUrl', 'trailerUrl', 'releaseDate', 'year',
+          'language', 'certification', 'rating', 'categories', 'genres',
+          'featured', 'recommended', 'published', 'views', 'seasons',
+          'createdAtIso', 'updatedBy', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'tmdbId', 'title', 'originalTitle', 'overview', 'posterUrl',
+          'backdropUrl', 'trailerUrl', 'releaseDate', 'year',
+          'language', 'certification', 'rating', 'categories', 'genres',
+          'featured', 'recommended', 'published', 'views', 'seasons',
+          'createdAtIso', 'updatedBy', 'updatedAt'
+        ])
+        && data.id is string
+        && data.id.size() >= 1
+        && data.id.size() <= 128
+        && data.id.matches('^[a-zA-Z0-9_\\-]+$')
+        && data.id == seriesId
+        && (!('tmdbId' in data) || data.tmdbId == null || (data.tmdbId is int && data.tmdbId >= 1))
+        && data.title is string
+        && data.title.size() >= 1
+        && data.title.size() <= 160
+        && data.originalTitle is string
+        && data.originalTitle.size() <= 160
+        && data.overview is string
+        && data.overview.size() <= 3000
+        && data.posterUrl is string
+        && data.posterUrl.size() <= 1000
+        && data.backdropUrl is string
+        && data.backdropUrl.size() <= 1000
+        && data.trailerUrl is string
+        && data.trailerUrl.size() <= 600
+        && data.releaseDate is string
+        && data.releaseDate.size() <= 25
+        && data.year is string
+        && data.year.size() <= 10
+        && data.language is string
+        && data.language.size() <= 30
+        && data.certification is string
+        && data.certification.size() <= 16
+        && data.rating is number
+        && data.rating >= 0
+        && data.rating <= 10
+        && data.categories is list
+        && data.categories.size() <= 12
+        && (data.categories.size() == 0 || data.categories[0] is string)
+        && data.genres is list
+        && data.genres.size() <= 12
+        && (data.genres.size() == 0 || data.genres[0] is string)
+        && data.featured is bool
+        && data.recommended is bool
+        && data.published is bool
+        && data.views is int
+        && data.views >= 0
+        && data.seasons is list
+        && data.seasons.size() <= 40
+        && (data.seasons.size() == 0 || data.seasons[0] is map)
+        && data.createdAtIso is string
+        && data.createdAtIso.size() <= 40
+        && data.updatedBy is string
+        && data.updatedBy.size() >= 1
+        && data.updatedBy.size() <= 128
+        && data.updatedBy.matches('^[a-zA-Z0-9_\\-]+$')
+        && data.updatedBy == request.auth.uid
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidPublicMediaAsset(data, mediaId) {
+      return data.keys().hasAll([
+          'id', 'folder', 'filename', 'mimeType', 'dataUrl',
+          'sizeBytes', 'updatedBy', 'updatedAt'
+        ])
+        && data.keys().hasOnly([
+          'id', 'folder', 'filename', 'mimeType', 'dataUrl',
+          'sizeBytes', 'updatedBy', 'updatedAt'
+        ])
+        && data.id is string
+        && data.id.size() >= 1
+        && data.id.size() <= 128
+        && data.id.matches('^[a-zA-Z0-9_\\-]+$')
+        && data.id == mediaId
+        && data.folder is string
+        && data.folder.size() >= 1
+        && data.folder.size() <= 32
+        && data.folder in ['posters', 'backdrops', 'ads-images', 'ads-videos', 'branding', 'notifications', 'categories']
+        && data.filename is string
+        && data.filename.size() >= 1
+        && data.filename.size() <= 128
+        && data.filename.matches('^[a-zA-Z0-9._\\-]+$')
+        && data.mimeType is string
+        && data.mimeType.size() >= 1
+        && data.mimeType.size() <= 40
+        && data.mimeType in ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'video/mp4', 'video/webm']
+        && data.dataUrl is string
+        && data.dataUrl.size() >= 20
+        && data.dataUrl.size() <= 700000
+        && (data.dataUrl[0:11] == 'data:image/' || data.dataUrl[0:11] == 'data:video/')
+        && data.sizeBytes is int
+        && data.sizeBytes >= 1
+        && data.sizeBytes <= 700000
+        && data.updatedBy is string
+        && data.updatedBy.size() >= 1
+        && data.updatedBy.size() <= 128
+        && data.updatedBy.matches('^[a-zA-Z0-9_\\-]+$')
+        && data.updatedBy == request.auth.uid
+        && data.updatedAt is timestamp;
+    }
+
+    // =========================================================================
+    // Collection: /users/{userId} (Public-Safe Profile Preferences, Owner-Only)
+    // =========================================================================
+    match /users/{userId} {
+      allow get: if isValidId(userId) && (isOwner(userId) || isAdmin());
+      allow list: if false;
+
+      allow create: if isVerifiedOwner(userId)
+        && isValidId(userId)
+        && isValidUserProfile(incoming(), userId)
+        && incoming().uid == request.auth.uid
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+
+      allow update: if isVerifiedUser()
+        && isValidId(userId)
+        && isValidUserProfile(incoming(), userId)
+        && incoming().uid == existing().uid
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          isAdmin() ||
+          (
+            isVerifiedOwner(userId) && (
+              // Action 1: Update display profile
+              incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL', 'updatedAt']) ||
+              // Action 2: Update preferences (language / notifications)
+              incoming().diff(existing()).affectedKeys().hasOnly(['preferredLanguage', 'notificationsEnabled', 'updatedAt']) ||
+              incoming().diff(existing()).affectedKeys().hasOnly(['preferredLanguage', 'updatedAt']) ||
+              incoming().diff(existing()).affectedKeys().hasOnly(['notificationsEnabled', 'updatedAt']) ||
+              // Action 3: Re-accept updated legal terms
+              incoming().diff(existing()).affectedKeys().hasOnly(['termsAccepted', 'termsVersion', 'updatedAt'])
+            )
+          )
+        );
+
+      allow delete: if isValidId(userId) && (isVerifiedOwner(userId) || isAdmin());
+
+      // =======================================================================
+      // Subcollection: /users/{userId}/private/{docId} (Strict PII Isolation)
+      // =======================================================================
+      match /private/{docId} {
+        allow get: if isValidId(userId) && docId == 'info' && (isOwner(userId) || isAdmin());
+        allow list: if false;
+
+        allow create: if isVerifiedOwner(userId)
+          && isValidId(userId)
+          && docId == 'info'
+          && isValidUserPrivateInfo(incoming(), userId)
+          && incoming().uid == request.auth.uid
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time
+          && hasValidProfileParentAfter(userId);
+
+        allow update: if isVerifiedUser()
+          && isValidId(userId)
+          && docId == 'info'
+          && isValidUserPrivateInfo(incoming(), userId)
+          && incoming().uid == existing().uid
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && hasValidProfileParent(userId)
+          && (
+            isAdmin() ||
+            (
+              isVerifiedOwner(userId)
+              && incoming().diff(existing()).affectedKeys().hasOnly(['email', 'provider', 'updatedAt'])
+            )
+          );
+
+        allow delete: if isValidId(userId) && docId == 'info' && (isVerifiedOwner(userId) || isAdmin());
+      }
+
+      // =======================================================================
+      // Subcollection: /users/{userId}/favorites/{favoriteId}
+      // =======================================================================
+      match /favorites/{favoriteId} {
+        allow get: if isValidId(userId) && isValidId(favoriteId) && (isOwner(userId) || isAdmin());
+        allow list: if (isOwner(userId) && resource.data.uid == request.auth.uid) || isBootstrappedAdmin();
+
+        allow create: if isVerifiedOwner(userId)
+          && isValidId(userId)
+          && isValidId(favoriteId)
+          && isValidUserFavorite(incoming(), userId)
+          && incoming().uid == request.auth.uid
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time
+          && hasValidProfileParent(userId);
+
+        allow update: if isVerifiedUser()
+          && isValidId(userId)
+          && isValidId(favoriteId)
+          && isValidUserFavorite(incoming(), userId)
+          && incoming().uid == existing().uid
+          && incoming().tmdbId == existing().tmdbId
+          && incoming().mediaType == existing().mediaType
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && hasValidProfileParent(userId)
+          && (
+            isAdmin() ||
+            (
+              isVerifiedOwner(userId)
+              && incoming().diff(existing()).affectedKeys().hasOnly(['title', 'posterUrl', 'year', 'rating', 'updatedAt'])
+            )
+          );
+
+        allow delete: if isValidId(userId) && isValidId(favoriteId) && (isVerifiedOwner(userId) || isAdmin());
+      }
+    }
+
+    // =========================================================================
+    // Collection: /supportTickets/{ticketId}
+    // =========================================================================
+    match /supportTickets/{ticketId} {
+      allow get: if isValidId(ticketId) && (
+        (isSignedIn() && existing().uid == request.auth.uid) ||
+        isAdmin()
+      );
+      allow list: if (isSignedIn() && resource.data.uid == request.auth.uid) || isBootstrappedAdmin();
+
+      allow create: if isVerifiedUser()
+        && isValidId(ticketId)
+        && isValidSupportTicket(incoming())
+        && incoming().uid == request.auth.uid
+        && incoming().status == 'open'
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+
+      allow update: if isVerifiedUser()
+        && isValidId(ticketId)
+        && isValidSupportTicket(incoming())
+        && incoming().uid == existing().uid
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          isAdmin() ||
+          (
+            existing().uid == request.auth.uid
+            && existing().status != 'resolved'
+            && incoming().status == 'open'
+            && incoming().diff(existing()).affectedKeys().hasOnly(['message', 'category', 'updatedAt'])
+          )
+        );
+
+      allow delete: if isValidId(ticketId) && isAdmin();
+    }
+
+    // =========================================================================
+    // Collection: /systemConfig/{configId} (Public-Safe Real-Time Platform Sync)
+    // =========================================================================
+    match /systemConfig/{configId} {
+      allow get: if isValidId(configId) && configId == 'public';
+      allow list: if false;
+
+      allow create: if isVerifiedUser()
+        && isValidId(configId)
+        && configId == 'public'
+        && isValidSystemPublicConfig(incoming())
+        && incoming().updatedAt == request.time
+        && isAdmin();
+
+      allow update: if isVerifiedUser()
+        && isValidId(configId)
+        && configId == 'public'
+        && isValidSystemPublicConfig(incoming())
+        && incoming().updatedAt == request.time
+        && isAdmin();
+
+      allow delete: if false;
+    }
+
+    // =========================================================================
+    // Collection: /publicAds/{adId} (Permanent Cross-Environment Ad Campaigns)
+    // =========================================================================
+    match /publicAds/{adId} {
+      allow get: if isValidId(adId) && (existing().status == 'active' || isAdmin());
+      allow list: if resource.data.status == 'active' || isBootstrappedAdmin();
+
+      allow create: if isVerifiedUser()
+        && isValidId(adId)
+        && isValidPublicAd(incoming(), adId)
+        && incoming().updatedAt == request.time
+        && isAdmin();
+
+      allow update: if isVerifiedUser()
+        && isValidId(adId)
+        && isValidPublicAd(incoming(), adId)
+        && incoming().id == existing().id
+        && incoming().updatedAt == request.time
+        && isAdmin();
+
+      allow delete: if isVerifiedUser() && isValidId(adId) && isAdmin();
+    }
+
+    // =========================================================================
+    // Collection: /publicCatalogLists/{listId} (Permanent Banners/Highlights/Categories/Genres/Servers)
+    // =========================================================================
+    match /publicCatalogLists/{listId} {
+      allow get: if isValidId(listId) && listId in ['banners', 'highlights', 'categories', 'genres', 'servers'];
+      allow list: if false;
+
+      allow create: if isVerifiedUser()
+        && isValidId(listId)
+        && listId in ['banners', 'highlights', 'categories', 'genres', 'servers']
+        && isValidPublicCatalogList(incoming(), listId)
+        && incoming().updatedAt == request.time
+        && isAdmin();
+
+      allow update: if isVerifiedUser()
+        && isValidId(listId)
+        && listId in ['banners', 'highlights', 'categories', 'genres', 'servers']
+        && isValidPublicCatalogList(incoming(), listId)
+        && incoming().listId == existing().listId
+        && incoming().updatedAt == request.time
+        && isAdmin();
+
+      allow delete: if false;
+    }
+
+    // =========================================================================
+    // Collection: /publicMovies/{movieId} (Permanent Admin-Managed Movies)
+    // =========================================================================
+    match /publicMovies/{movieId} {
+      allow get: if isValidId(movieId) && (existing().published == true || isAdmin());
+      allow list: if resource.data.published == true || isBootstrappedAdmin();
+
+      allow create: if isVerifiedUser()
+        && isValidId(movieId)
+        && isValidPublicMovie(incoming(), movieId)
+        && incoming().updatedAt == request.time
+        && isAdmin();
+
+      allow update: if isVerifiedUser()
+        && isValidId(movieId)
+        && isValidPublicMovie(incoming(), movieId)
+        && incoming().id == existing().id
+        && incoming().updatedAt == request.time
+        && isAdmin();
+
+      allow delete: if isVerifiedUser() && isValidId(movieId) && isAdmin();
+    }
+
+    // =========================================================================
+    // Collection: /publicSeries/{seriesId} (Permanent Admin-Managed Series)
+    // =========================================================================
+    match /publicSeries/{seriesId} {
+      allow get: if isValidId(seriesId) && (existing().published == true || isAdmin());
+      allow list: if resource.data.published == true || isBootstrappedAdmin();
+
+      allow create: if isVerifiedUser()
+        && isValidId(seriesId)
+        && isValidPublicSeries(incoming(), seriesId)
+        && incoming().updatedAt == request.time
+        && isAdmin();
+
+      allow update: if isVerifiedUser()
+        && isValidId(seriesId)
+        && isValidPublicSeries(incoming(), seriesId)
+        && incoming().id == existing().id
+        && incoming().updatedAt == request.time
+        && isAdmin();
+
+      allow delete: if isVerifiedUser() && isValidId(seriesId) && isAdmin();
+    }
+
+    // =========================================================================
+    // Collection: /publicMedia/{mediaId} (Permanent Cloud-Backed Uploaded Assets)
+    // =========================================================================
+    match /publicMedia/{mediaId} {
+      allow get: if isValidId(mediaId);
+      allow list: if false;
+
+      allow create: if isVerifiedUser()
+        && isValidId(mediaId)
+        && isValidPublicMediaAsset(incoming(), mediaId)
+        && incoming().updatedAt == request.time
+        && isAdmin();
+
+      allow update: if isVerifiedUser()
+        && isValidId(mediaId)
+        && isValidPublicMediaAsset(incoming(), mediaId)
+        && incoming().id == existing().id
+        && incoming().updatedAt == request.time
+        && isAdmin();
+
+      allow delete: if isVerifiedUser() && isValidId(mediaId) && isAdmin();
+    }
+
+    // =========================================================================
+    // Collection: /admins/{adminId} (Read-only self check; managed via console)
+    // =========================================================================
+    match /admins/{adminId} {
+      allow get: if isValidId(adminId) && isVerifiedOwner(adminId);
+      allow list, create, update, delete: if false;
+    }
+  }
+}

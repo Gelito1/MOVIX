@@ -1,0 +1,972 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Public-safe user profile preferences and onboarding state stored at /users/{userId}. Contains no PII.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Firebase Auth UID matching the document ID."
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "description": "User display name shown in the account menu."
+        },
+        "photoURL": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "Optional avatar URL (empty string if none)."
+        },
+        "preferredLanguage": {
+          "type": "string",
+          "enum": ["pt-BR", "pt-PT", "en", "es-419", "es-ES", "fr", "it"],
+          "description": "Preferred catalog and subtitle language."
+        },
+        "notificationsEnabled": {
+          "type": "boolean",
+          "description": "Whether the user opted in to release notifications."
+        },
+        "termsAccepted": {
+          "type": "boolean",
+          "description": "Whether the user accepted the MOVIX Terms & Conditions."
+        },
+        "termsVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 20,
+          "pattern": "^[a-zA-Z0-9._\\-]+$",
+          "description": "Version identifier of the accepted legal terms."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of profile creation (immutable)."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last profile update."
+        }
+      },
+      "required": [
+        "uid",
+        "displayName",
+        "photoURL",
+        "preferredLanguage",
+        "notificationsEnabled",
+        "termsAccepted",
+        "termsVersion",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "UserPrivateInfo": {
+      "title": "UserPrivateInfo",
+      "description": "Owner-only isolated PII document stored at /users/{userId}/private/info.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Owner Firebase Auth UID."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "minLength": 3,
+          "maxLength": 254,
+          "description": "User email address isolated from public profile."
+        },
+        "provider": {
+          "type": "string",
+          "enum": ["google", "password"],
+          "description": "Primary authentication provider."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of record creation (immutable)."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last update."
+        }
+      },
+      "required": ["uid", "email", "provider", "createdAt", "updatedAt"]
+    },
+    "UserFavorite": {
+      "title": "UserFavorite",
+      "description": "A favorite movie or series synced to the user's cloud list.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Owner Firebase Auth UID."
+        },
+        "tmdbId": {
+          "type": "number",
+          "description": "Positive integer TMDB media identifier."
+        },
+        "mediaType": {
+          "type": "string",
+          "enum": ["movie", "tv"],
+          "description": "Media type: movie or tv."
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "description": "Display title of the movie or series."
+        },
+        "posterUrl": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "Poster image URL or empty string."
+        },
+        "year": {
+          "type": "string",
+          "maxLength": 10,
+          "description": "Release year string."
+        },
+        "rating": {
+          "type": "number",
+          "description": "TMDB rating between 0 and 10."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of creation (immutable)."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last update."
+        }
+      },
+      "required": [
+        "uid",
+        "tmdbId",
+        "mediaType",
+        "title",
+        "posterUrl",
+        "year",
+        "rating",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "SupportTicket": {
+      "title": "SupportTicket",
+      "description": "User-submitted support or problem report from the account and help screens.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Author Firebase Auth UID."
+        },
+        "category": {
+          "type": "string",
+          "enum": ["login", "reproducao", "conta", "legal", "outro"],
+          "description": "Issue category."
+        },
+        "message": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 1000,
+          "description": "User issue description."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["open", "resolved"],
+          "description": "Ticket lifecycle status. 'resolved' is terminal for non-admins."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of creation (immutable)."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last update."
+        }
+      },
+      "required": ["uid", "category", "message", "status", "createdAt", "updatedAt"]
+    },
+    "SystemPublicConfig": {
+      "title": "SystemPublicConfig",
+      "description": "Public-safe platform settings, branding, institutional pages, and ad pacing synced in real time across all MOVIX environments at /systemConfig/public.",
+      "type": "object",
+      "properties": {
+        "platformName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "description": "Public platform display name."
+        },
+        "logoUrl": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "Optional custom logo URL."
+        },
+        "faviconUrl": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "Optional custom favicon URL."
+        },
+        "primaryColor": {
+          "type": "string",
+          "maxLength": 20,
+          "description": "Hex brand accent color."
+        },
+        "heroTagline": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "Optional public hero tagline."
+        },
+        "seoTitle": {
+          "type": "string",
+          "maxLength": 160,
+          "description": "SEO page title."
+        },
+        "seoDescription": {
+          "type": "string",
+          "maxLength": 400,
+          "description": "SEO meta description."
+        },
+        "seoKeywords": {
+          "type": "string",
+          "maxLength": 300,
+          "description": "Optional SEO keywords."
+        },
+        "aboutUs": {
+          "type": "string",
+          "maxLength": 5000,
+          "description": "Optional About Us public text."
+        },
+        "privacyPolicy": {
+          "type": "string",
+          "maxLength": 8000,
+          "description": "Optional Privacy Policy public text."
+        },
+        "termsOfUse": {
+          "type": "string",
+          "maxLength": 8000,
+          "description": "Optional Terms of Use public text."
+        },
+        "contactEmail": {
+          "type": "string",
+          "maxLength": 120,
+          "description": "Optional public contact email."
+        },
+        "contactPhone": {
+          "type": "string",
+          "maxLength": 40,
+          "description": "Optional public contact phone."
+        },
+        "socialInstagram": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "Optional Instagram link."
+        },
+        "socialYoutube": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "Optional YouTube link."
+        },
+        "socialTelegram": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "Optional Telegram link."
+        },
+        "socialTwitter": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "Optional Twitter/X link."
+        },
+        "defaultLanguage": {
+          "type": "string",
+          "enum": ["pt-BR", "pt-PT", "en", "es-419", "es-ES", "fr", "it"],
+          "description": "Default platform language."
+        },
+        "maintenanceMode": {
+          "type": "boolean",
+          "description": "Whether the public platform is in maintenance mode."
+        },
+        "adsGlobalEnabled": {
+          "type": "boolean",
+          "description": "Global switch enabling or disabling MOVIX ADS."
+        },
+        "dismissCooldownMinutes": {
+          "type": "number",
+          "description": "Minutes before large ads reappear after a user closes one (1-1440)."
+        },
+        "largeAdIntervalMinutes": {
+          "type": "number",
+          "description": "Minimum interval in minutes between large ad appearances (0-1440)."
+        },
+        "playerAdIntervalMinutes": {
+          "type": "number",
+          "description": "Minimum interval in minutes between video player overlay ads (0-1440)."
+        },
+        "headerAdAlwaysVisible": {
+          "type": "boolean",
+          "description": "Whether the compact top header strip ad always appears without cooldown."
+        },
+        "updatedBy": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Verified admin UID who last updated system config."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of the last update."
+        }
+      },
+      "required": [
+        "platformName",
+        "logoUrl",
+        "faviconUrl",
+        "primaryColor",
+        "heroTagline",
+        "seoTitle",
+        "seoDescription",
+        "defaultLanguage",
+        "maintenanceMode",
+        "adsGlobalEnabled",
+        "dismissCooldownMinutes",
+        "largeAdIntervalMinutes",
+        "playerAdIntervalMinutes",
+        "headerAdAlwaysVisible",
+        "updatedBy",
+        "updatedAt"
+      ]
+    },
+    "PublicAdCampaign": {
+      "title": "PublicAdCampaign",
+      "description": "Permanent public-safe ad campaign metadata synced across MOVIX environments at /publicAds/{adId}.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Campaign identifier matching document ID."
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160,
+          "description": "Campaign internal name."
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "Public headline."
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 600,
+          "description": "Public description."
+        },
+        "format": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40,
+          "description": "Ad format identifier."
+        },
+        "mediaKind": {
+          "type": "string",
+          "enum": ["image", "video"],
+          "description": "Creative media type."
+        },
+        "imageUrl": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "Creative image or poster URL."
+        },
+        "videoUrl": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "Creative video URL."
+        },
+        "destinationUrl": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "Click-through destination URL."
+        },
+        "ctaText": {
+          "type": "string",
+          "maxLength": 80,
+          "description": "Call-to-action button label."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["active", "paused", "scheduled", "expired", "draft"],
+          "description": "Campaign delivery status."
+        },
+        "priority": {
+          "type": "number",
+          "description": "Delivery priority (1-100)."
+        },
+        "placements": {
+          "type": "array",
+          "description": "Target placements in MOVIX (max 20)."
+        },
+        "devices": {
+          "type": "array",
+          "description": "Target devices (max 6)."
+        },
+        "autoplay": {
+          "type": "boolean",
+          "description": "Whether video ads autoplay."
+        },
+        "startMuted": {
+          "type": "boolean",
+          "description": "Whether video ads start muted."
+        },
+        "skippable": {
+          "type": "boolean",
+          "description": "Whether player ads can be skipped."
+        },
+        "skipAfterSeconds": {
+          "type": "number",
+          "description": "Seconds before skip button unlocks (0-120)."
+        },
+        "durationSeconds": {
+          "type": "number",
+          "description": "Maximum ad duration in seconds (1-300)."
+        },
+        "frequencyPerSession": {
+          "type": "number",
+          "description": "Target impressions per session (1-100)."
+        },
+        "startDate": {
+          "type": "string",
+          "maxLength": 40,
+          "description": "Optional campaign start date."
+        },
+        "endDate": {
+          "type": "string",
+          "maxLength": 40,
+          "description": "Optional campaign end date."
+        },
+        "maxImpressions": {
+          "type": "number",
+          "description": "Optional impression cap."
+        },
+        "targetAudience": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "Optional audience label."
+        },
+        "countries": {
+          "type": "array",
+          "description": "Optional country ISO codes (max 50)."
+        },
+        "impressions": {
+          "type": "number",
+          "description": "Persisted total impressions count."
+        },
+        "clicks": {
+          "type": "number",
+          "description": "Persisted total clicks count."
+        },
+        "videoViews": {
+          "type": "number",
+          "description": "Persisted video views count."
+        },
+        "videoCompletes": {
+          "type": "number",
+          "description": "Persisted video completes count."
+        },
+        "videoPartials": {
+          "type": "number",
+          "description": "Persisted video partials count."
+        },
+        "totalWatchSeconds": {
+          "type": "number",
+          "description": "Persisted total video watch seconds."
+        },
+        "createdAtIso": {
+          "type": "string",
+          "maxLength": 40,
+          "description": "Optional ISO creation timestamp."
+        },
+        "updatedBy": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Verified admin UID."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of the last update."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "title",
+        "description",
+        "format",
+        "mediaKind",
+        "imageUrl",
+        "videoUrl",
+        "destinationUrl",
+        "ctaText",
+        "status",
+        "priority",
+        "placements",
+        "devices",
+        "autoplay",
+        "startMuted",
+        "skippable",
+        "skipAfterSeconds",
+        "durationSeconds",
+        "frequencyPerSession",
+        "updatedBy",
+        "updatedAt"
+      ]
+    },
+    "PublicCatalogList": {
+      "title": "PublicCatalogList",
+      "description": "Permanent admin-managed catalog lists (banners, highlights, categories, genres, servers) stored as native Firestore maps/lists at /publicCatalogLists/{listId}.",
+      "type": "object",
+      "properties": {
+        "listId": {
+          "type": "string",
+          "enum": ["banners", "highlights", "categories", "genres", "servers"],
+          "description": "List identifier matching document ID."
+        },
+        "items": {
+          "type": "array",
+          "description": "Bounded list of up to 100 native item maps."
+        },
+        "itemCount": {
+          "type": "number",
+          "description": "Number of items in the list (0-100)."
+        },
+        "updatedBy": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Verified admin UID."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last update."
+        }
+      },
+      "required": ["listId", "items", "itemCount", "updatedBy", "updatedAt"]
+    },
+    "PublicMovie": {
+      "title": "PublicMovie",
+      "description": "Permanent admin-managed movie record stored at /publicMovies/{movieId}.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Movie identifier matching document ID."
+        },
+        "tmdbId": {
+          "type": "number",
+          "description": "Optional TMDB movie identifier."
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160,
+          "description": "Movie title."
+        },
+        "originalTitle": {
+          "type": "string",
+          "maxLength": 160,
+          "description": "Original movie title."
+        },
+        "overview": {
+          "type": "string",
+          "maxLength": 3000,
+          "description": "Synopsis."
+        },
+        "posterUrl": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "Poster image URL."
+        },
+        "backdropUrl": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "Backdrop image URL."
+        },
+        "trailerUrl": {
+          "type": "string",
+          "maxLength": 600,
+          "description": "Trailer URL."
+        },
+        "releaseDate": {
+          "type": "string",
+          "maxLength": 25,
+          "description": "Release date string."
+        },
+        "year": {
+          "type": "string",
+          "maxLength": 10,
+          "description": "Release year."
+        },
+        "runtime": {
+          "type": "number",
+          "description": "Duration in minutes."
+        },
+        "language": {
+          "type": "string",
+          "maxLength": 30,
+          "description": "Primary language."
+        },
+        "certification": {
+          "type": "string",
+          "maxLength": 16,
+          "description": "Age rating."
+        },
+        "rating": {
+          "type": "number",
+          "description": "Rating from 0 to 10."
+        },
+        "categories": {
+          "type": "array",
+          "description": "Category tags (max 12)."
+        },
+        "genres": {
+          "type": "array",
+          "description": "Genre tags (max 12)."
+        },
+        "servers": {
+          "type": "array",
+          "description": "Playback server maps (max 20)."
+        },
+        "featured": {
+          "type": "boolean",
+          "description": "Featured flag."
+        },
+        "recommended": {
+          "type": "boolean",
+          "description": "Recommended flag."
+        },
+        "published": {
+          "type": "boolean",
+          "description": "Public visibility flag."
+        },
+        "views": {
+          "type": "number",
+          "description": "Total recorded views."
+        },
+        "createdAtIso": {
+          "type": "string",
+          "maxLength": 40,
+          "description": "Creation timestamp string."
+        },
+        "updatedBy": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Verified admin UID."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last update."
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "originalTitle",
+        "overview",
+        "posterUrl",
+        "backdropUrl",
+        "trailerUrl",
+        "releaseDate",
+        "year",
+        "runtime",
+        "language",
+        "certification",
+        "rating",
+        "categories",
+        "genres",
+        "servers",
+        "featured",
+        "recommended",
+        "published",
+        "views",
+        "createdAtIso",
+        "updatedBy",
+        "updatedAt"
+      ]
+    },
+    "PublicSeries": {
+      "title": "PublicSeries",
+      "description": "Permanent admin-managed series with seasons and episodes stored at /publicSeries/{seriesId}.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Series identifier matching document ID."
+        },
+        "tmdbId": {
+          "type": "number",
+          "description": "Optional TMDB series identifier."
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160,
+          "description": "Series title."
+        },
+        "originalTitle": {
+          "type": "string",
+          "maxLength": 160,
+          "description": "Original series title."
+        },
+        "overview": {
+          "type": "string",
+          "maxLength": 3000,
+          "description": "Synopsis."
+        },
+        "posterUrl": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "Poster image URL."
+        },
+        "backdropUrl": {
+          "type": "string",
+          "maxLength": 1000,
+          "description": "Backdrop image URL."
+        },
+        "trailerUrl": {
+          "type": "string",
+          "maxLength": 600,
+          "description": "Trailer URL."
+        },
+        "releaseDate": {
+          "type": "string",
+          "maxLength": 25,
+          "description": "First air date string."
+        },
+        "year": {
+          "type": "string",
+          "maxLength": 10,
+          "description": "Release year."
+        },
+        "language": {
+          "type": "string",
+          "maxLength": 30,
+          "description": "Primary language."
+        },
+        "certification": {
+          "type": "string",
+          "maxLength": 16,
+          "description": "Age rating."
+        },
+        "rating": {
+          "type": "number",
+          "description": "Rating from 0 to 10."
+        },
+        "categories": {
+          "type": "array",
+          "description": "Category tags (max 12)."
+        },
+        "genres": {
+          "type": "array",
+          "description": "Genre tags (max 12)."
+        },
+        "featured": {
+          "type": "boolean",
+          "description": "Featured flag."
+        },
+        "recommended": {
+          "type": "boolean",
+          "description": "Recommended flag."
+        },
+        "published": {
+          "type": "boolean",
+          "description": "Public visibility flag."
+        },
+        "views": {
+          "type": "number",
+          "description": "Total recorded views."
+        },
+        "seasons": {
+          "type": "array",
+          "description": "Seasons and nested episodes maps (max 40)."
+        },
+        "createdAtIso": {
+          "type": "string",
+          "maxLength": 40,
+          "description": "Creation timestamp string."
+        },
+        "updatedBy": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Verified admin UID."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last update."
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "originalTitle",
+        "overview",
+        "posterUrl",
+        "backdropUrl",
+        "trailerUrl",
+        "releaseDate",
+        "year",
+        "language",
+        "certification",
+        "rating",
+        "categories",
+        "genres",
+        "featured",
+        "recommended",
+        "published",
+        "views",
+        "seasons",
+        "createdAtIso",
+        "updatedBy",
+        "updatedAt"
+      ]
+    },
+    "PublicMediaAsset": {
+      "title": "PublicMediaAsset",
+      "description": "Permanent cloud-backed uploaded image or small media asset stored at /publicMedia/{mediaId} so creatives survive app updates.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Asset identifier matching document ID."
+        },
+        "folder": {
+          "type": "string",
+          "enum": ["posters", "backdrops", "ads-images", "ads-videos", "branding", "notifications", "categories"],
+          "description": "Logical media folder."
+        },
+        "filename": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9._\\-]+$",
+          "description": "Sanitized filename."
+        },
+        "mimeType": {
+          "type": "string",
+          "enum": ["image/jpeg", "image/png", "image/webp", "image/gif", "video/mp4", "video/webm"],
+          "description": "Validated MIME type."
+        },
+        "dataUrl": {
+          "type": "string",
+          "minLength": 10,
+          "maxLength": 700000,
+          "description": "Bounded base64 data URI of compressed media asset."
+        },
+        "sizeBytes": {
+          "type": "number",
+          "description": "Asset byte size (1-700000)."
+        },
+        "updatedBy": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Verified admin UID."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of upload."
+        }
+      },
+      "required": ["id", "folder", "filename", "mimeType", "dataUrl", "sizeBytes", "updatedBy", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "User profile preferences without PII; readable and writable only by the owner."
+    },
+    "/users/{userId}/private/{docId}": {
+      "schema": { "$ref": "#/entities/UserPrivateInfo" },
+      "description": "Isolated user PII (email, auth provider); strictly owner-only."
+    },
+    "/users/{userId}/favorites/{favoriteId}": {
+      "schema": { "$ref": "#/entities/UserFavorite" },
+      "description": "User-owned cloud-synced favorites subcollection requiring parent profile existence."
+    },
+    "/supportTickets/{ticketId}": {
+      "schema": { "$ref": "#/entities/SupportTicket" },
+      "description": "User-submitted problem reports; owners can read their own and create open tickets."
+    },
+    "/systemConfig/{configId}": {
+      "schema": { "$ref": "#/entities/SystemPublicConfig" },
+      "description": "Singleton public platform settings doc ('public') readable by all visitors and writable exclusively by verified admins."
+    },
+    "/publicAds/{adId}": {
+      "schema": { "$ref": "#/entities/PublicAdCampaign" },
+      "description": "Permanent synced ad campaigns; active campaigns are readable by visitors, all CRUD restricted exclusively to verified admins."
+    },
+    "/publicCatalogLists/{listId}": {
+      "schema": { "$ref": "#/entities/PublicCatalogList" },
+      "description": "Permanent admin-managed banners, highlights, categories, genres, and playback servers; public get by exact doc ID, admin-only writes."
+    },
+    "/publicMovies/{movieId}": {
+      "schema": { "$ref": "#/entities/PublicMovie" },
+      "description": "Permanent admin-managed movies; published movies are readable by visitors, all CRUD restricted exclusively to verified admins."
+    },
+    "/publicSeries/{seriesId}": {
+      "schema": { "$ref": "#/entities/PublicSeries" },
+      "description": "Permanent admin-managed series with seasons and episodes; published series are readable by visitors, all CRUD restricted exclusively to verified admins."
+    },
+    "/publicMedia/{mediaId}": {
+      "schema": { "$ref": "#/entities/PublicMediaAsset" },
+      "description": "Permanent cloud-backed uploaded images and small media assets; public get by exact ID (no list), admin-only CRUD."
+    }
+  }
+}

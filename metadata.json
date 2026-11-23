@@ -1,0 +1,6 @@
+{
+  "name": "MOVIX",
+  "description": "Plataforma profissional de filmes e séries em português com catálogo integrado TMDB e MegamBD.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

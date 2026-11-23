@@ -1,0 +1,341 @@
+{
+  "admins": [
+    {
+      "id": "adm_principal",
+      "name": "Administrador Principal",
+      "email": "gelitontn1@gmail.com",
+      "role": "super_admin",
+      "permissions": [
+        "dashboard",
+        "movies",
+        "series",
+        "seasons",
+        "episodes",
+        "ads",
+        "campaigns",
+        "ad_stats",
+        "users",
+        "notifications",
+        "categories",
+        "genres",
+        "servers",
+        "pages",
+        "admins",
+        "logs",
+        "backup",
+        "settings"
+      ],
+      "passwordHash": "f5e96bf83da7955e165ecc0a82530f53:4430643c8b784ed9da83f284505a0e795548b86f1587cedecfa97d63a2a2d568d5d5c18f7b27adb661b0fa0ddc68cc0f58891735fcccbe6ed3a7aa3c4eb95aaa",
+      "active": true,
+      "createdAt": "2026-11-22T09:07:01.391Z",
+      "lastLoginAt": "2026-11-22T09:08:06.522Z"
+    }
+  ],
+  "revokedSessionBefore": 0,
+  "movies": [],
+  "series": [],
+  "genres": [
+    {
+      "id": "gen-acao",
+      "name": "Ação",
+      "slug": "acao",
+      "mediaType": "both",
+      "active": true,
+      "order": 1
+    },
+    {
+      "id": "gen-aventura",
+      "name": "Aventura",
+      "slug": "aventura",
+      "mediaType": "both",
+      "active": true,
+      "order": 2
+    },
+    {
+      "id": "gen-comedia",
+      "name": "Comédia",
+      "slug": "comedia",
+      "mediaType": "both",
+      "active": true,
+      "order": 3
+    },
+    {
+      "id": "gen-drama",
+      "name": "Drama",
+      "slug": "drama",
+      "mediaType": "both",
+      "active": true,
+      "order": 4
+    },
+    {
+      "id": "gen-ficcao",
+      "name": "Ficção Científica",
+      "slug": "ficcao-cientifica",
+      "mediaType": "both",
+      "active": true,
+      "order": 5
+    },
+    {
+      "id": "gen-terror",
+      "name": "Terror",
+      "slug": "terror",
+      "mediaType": "both",
+      "active": true,
+      "order": 6
+    },
+    {
+      "id": "gen-romance",
+      "name": "Romance",
+      "slug": "romance",
+      "mediaType": "both",
+      "active": true,
+      "order": 7
+    },
+    {
+      "id": "gen-suspense",
+      "name": "Suspense",
+      "slug": "suspense",
+      "mediaType": "both",
+      "active": true,
+      "order": 8
+    },
+    {
+      "id": "gen-animacao",
+      "name": "Animação",
+      "slug": "animacao",
+      "mediaType": "both",
+      "active": true,
+      "order": 9
+    },
+    {
+      "id": "gen-documentario",
+      "name": "Documentário",
+      "slug": "documentario",
+      "mediaType": "both",
+      "active": true,
+      "order": 10
+    }
+  ],
+  "servers": [
+    {
+      "id": "srv-megaembed",
+      "name": "MegaEmbed HD Principal",
+      "baseUrl": "https://megaembed.com",
+      "kind": "embed",
+      "active": true,
+      "isDefault": true,
+      "order": 1,
+      "lastTestedAt": null,
+      "lastStatus": "unknown",
+      "lastLatencyMs": null
+    },
+    {
+      "id": "srv-mgeb-stream",
+      "name": "MegamBD Stream Direct",
+      "baseUrl": "https://mgeb.space",
+      "kind": "stream",
+      "active": true,
+      "isDefault": false,
+      "order": 2,
+      "lastTestedAt": null,
+      "lastStatus": "unknown",
+      "lastLatencyMs": null
+    }
+  ],
+  "ads": [
+    {
+      "id": "ad_mwriin8k_rryo",
+      "name": "Afiliados MELBET",
+      "title": "25%-50%",
+      "description": "",
+      "format": "banner_horizontal",
+      "mediaKind": "video",
+      "imageUrl": "",
+      "videoUrl": "/api/media/ads-videos/mwrihe18-b0a58a2a3b1d.mp4",
+      "destinationUrl": "",
+      "ctaText": "Saiba mais",
+      "startDate": "",
+      "endDate": "",
+      "status": "active",
+      "priority": 10,
+      "placements": [
+        "home"
+      ],
+      "frequencyPerSession": 3,
+      "maxImpressions": null,
+      "targetAudience": "Todos os visitantes",
+      "countries": [],
+      "devices": [
+        "all"
+      ],
+      "autoplay": true,
+      "startMuted": false,
+      "skippable": true,
+      "skipAfterSeconds": 5,
+      "durationSeconds": 15,
+      "impressions": 3,
+      "clicks": 0,
+      "videoViews": 2,
+      "videoCompletes": 0,
+      "videoPartials": 0,
+      "totalWatchSeconds": 0,
+      "byDevice": {
+        "desktop": {
+          "impressions": 0,
+          "clicks": 0
+        },
+        "mobile": {
+          "impressions": 0,
+          "clicks": 0
+        },
+        "tablet": {
+          "impressions": 3,
+          "clicks": 0
+        }
+      },
+      "dailyStats": [
+        {
+          "date": "2026-11-22",
+          "impressions": 3,
+          "clicks": 0,
+          "videoViews": 2,
+          "videoCompletes": 0,
+          "watchSeconds": 0
+        }
+      ],
+      "createdAt": "2026-11-22T07:25:34.628Z",
+      "updatedAt": "2026-11-22T07:25:34.628Z",
+      "translations": {
+        "pt-BR": {
+          "name": "Afiliados MELBET",
+          "title": "25%-50%",
+          "description": "",
+          "ctaText": "Saiba mais",
+          "sourceHash": "9dc7b86af70e415e",
+          "updatedAt": "2026-11-22T10:11:49.357Z"
+        },
+        "en": {
+          "name": "MELBET Affiliates",
+          "title": "25%-50%",
+          "description": "",
+          "ctaText": "Find out more",
+          "sourceHash": "9dc7b86af70e415e",
+          "updatedAt": "2026-11-22T10:11:49.440Z"
+        },
+        "es-ES": {
+          "name": "Afiliados MELBET",
+          "title": "25%-50%",
+          "description": "",
+          "ctaText": "Descubra más",
+          "sourceHash": "9dc7b86af70e415e",
+          "updatedAt": "2026-11-22T10:11:49.485Z"
+        },
+        "fr": {
+          "name": "Affiliés MELBET",
+          "title": "25%-50%",
+          "description": "",
+          "ctaText": "En savoir plus",
+          "sourceHash": "9dc7b86af70e415e",
+          "updatedAt": "2026-11-22T10:11:49.717Z"
+        }
+      }
+    }
+  ],
+  "users": [
+    {
+      "uid": "DJVqhEShQxVVWCj4KWxYYX8hqwF3",
+      "displayName": "Gelito António Pasteis",
+      "email": "gelitontn1@gmail.com",
+      "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocIg6M0sL_GZ4XJ7-4ZBCnO8q57xeVARiEyKCoBHtzWGFOpT9iX2=s96-c",
+      "provider": "google",
+      "preferredLanguage": "pt-PT",
+      "status": "active",
+      "role": "user",
+      "favoritesCount": 0,
+      "watchCount": 0,
+      "recentTitles": [],
+      "createdAt": "2026-11-22T07:23:09.163Z",
+      "lastActiveAt": "2026-11-22T07:23:09.163Z"
+    }
+  ],
+  "siteConfig": {
+    "platformName": "MOVIX",
+    "logoUrl": "",
+    "faviconUrl": "/pwa-192x192.png",
+    "primaryColor": "#E5B85A",
+    "heroTagline": "Cinema, séries e entretenimento em alta definição.",
+    "aboutUs": "O MOVIX é uma plataforma moderna de descoberta e reprodução de filmes, séries, animes, novelas e documentários com experiência cinematográfica em todos os dispositivos.",
+    "privacyPolicy": "Respeitamos a privacidade dos utilizadores em conformidade com a LGPD e GDPR. Dados de conta e preferências são utilizados exclusivamente para sincronizar a sua lista e melhorar a experiência.",
+    "termsOfUse": "O MOVIX organiza e reproduz filmes e séries a partir de fontes externas integradas, sem hospedar arquivos de terceiros. Cada dispositivo aceita apenas uma conta vinculada.",
+    "contactEmail": "contato@movix.app",
+    "contactPhone": "",
+    "socialInstagram": "",
+    "socialYoutube": "",
+    "socialTelegram": "",
+    "socialTwitter": "",
+    "seoTitle": "MOVIX — Filmes e Séries em HD",
+    "seoDescription": "Assista a filmes, séries, animes, doramas e novelas no MOVIX com player cinema 360°.",
+    "seoKeywords": "filmes, séries, streaming, animes, doramas, movix",
+    "maintenanceMode": false,
+    "adsGlobalEnabled": true,
+    "defaultLanguage": "pt-BR",
+    "updatedAt": "2026-11-22T07:19:02.696Z"
+  },
+  "analytics": {
+    "totalViews": 1,
+    "daily": [
+      {
+        "date": "2026-11-22",
+        "views": 1,
+        "movieViews": 1,
+        "seriesViews": 0,
+        "newUsers": 1,
+        "activeUserIds": [
+          "DJVqhEShQxVVWCj4KWxYYX8hqwF3"
+        ],
+        "adImpressions": 3,
+        "adClicks": 0
+      }
+    ],
+    "topContent": [
+      {
+        "key": "movie:1726",
+        "mediaType": "movie",
+        "id": "1726",
+        "title": "Homem de Ferro",
+        "posterUrl": "https://image.tmdb.org/t/p/w500/mqN7RxojEiPoh3FTSTwOtwg7KAu.jpg",
+        "views": 1,
+        "lastViewedAt": "2026-11-22T08:51:06.619Z"
+      }
+    ]
+  },
+  "auditLogs": [
+    {
+      "id": "log_mwriin8l_0cx10",
+      "timestamp": "2026-11-22T07:25:34.629Z",
+      "adminId": "principal",
+      "adminName": "Gelito António Pasteis",
+      "adminEmail": "gelitontn1@gmail.com",
+      "adminRole": "super_admin",
+      "action": "Anúncio publicado",
+      "entityType": "ad",
+      "entityId": "ad_mwriin8k_rryo",
+      "details": "Afiliados MELBET",
+      "result": "success"
+    },
+    {
+      "id": "log_mwrihe1e_d9qdw",
+      "timestamp": "2026-11-22T07:24:36.051Z",
+      "adminId": "principal",
+      "adminName": "Gelito António Pasteis",
+      "adminEmail": "gelitontn1@gmail.com",
+      "adminRole": "super_admin",
+      "action": "Upload de ficheiro",
+      "entityType": "media",
+      "entityId": "mwrihe18-b0a58a2a3b1d.mp4",
+      "details": "Carregado em ads-videos (5940 KB)",
+      "result": "success"
+    }
+  ],
+  "backups": []
+}

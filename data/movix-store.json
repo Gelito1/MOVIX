@@ -1,0 +1,108 @@
+{
+  "adminPasswordHash": null,
+  "adultPinHash": null,
+  "banners": [],
+  "highlights": [],
+  "categories": [
+    {
+      "id": "cat-series",
+      "name": "Séries",
+      "source": "tmdb",
+      "externalId": "popular",
+      "mediaType": "tv",
+      "visible": true,
+      "order": 1
+    },
+    {
+      "id": "cat-filmes",
+      "name": "Filmes",
+      "source": "tmdb",
+      "externalId": "popular",
+      "mediaType": "movie",
+      "visible": true,
+      "order": 2
+    },
+    {
+      "id": "cat-animes",
+      "name": "Animes",
+      "source": "tmdb",
+      "externalId": "animes",
+      "mediaType": "tv",
+      "visible": true,
+      "order": 3
+    },
+    {
+      "id": "cat-novelas",
+      "name": "Novelas",
+      "source": "tmdb",
+      "externalId": "novelas",
+      "mediaType": "tv",
+      "visible": true,
+      "order": 4
+    },
+    {
+      "id": "cat-doramas",
+      "name": "Doramas",
+      "source": "tmdb",
+      "externalId": "doramas",
+      "mediaType": "tv",
+      "visible": true,
+      "order": 5
+    },
+    {
+      "id": "cat-dramas",
+      "name": "Dramas",
+      "source": "tmdb",
+      "externalId": "dramas",
+      "mediaType": "movie",
+      "visible": true,
+      "order": 6
+    },
+    {
+      "id": "cat-infantil",
+      "name": "Infantil",
+      "source": "tmdb",
+      "externalId": "infantil",
+      "mediaType": "movie",
+      "visible": true,
+      "order": 7
+    },
+    {
+      "id": "cat-docs",
+      "name": "Documentários",
+      "source": "tmdb",
+      "externalId": "documentarios",
+      "mediaType": "movie",
+      "visible": true,
+      "order": 8
+    }
+  ],
+  "errorLogs": [
+    {
+      "id": "1795318416681-hwoqg",
+      "timestamp": "2026-11-22T03:33:36.681Z",
+      "service": "TMDB",
+      "endpoint": "/tv/43358/season/3",
+      "statusCode": 404,
+      "message": "TMDB HTTP 404: {\"success\":false,\"status_code\":34,\"status_message\":\"The resource you requested could not be found.\"}"
+    },
+    {
+      "id": "1795318404465-l8akc",
+      "timestamp": "2026-11-22T03:33:24.465Z",
+      "service": "MegamBD",
+      "endpoint": "player_api.php (auth)",
+      "statusCode": 200,
+      "message": "Conta MegamBD devolveu auth=0 e estado \"Disabled\" em mgeb.space."
+    },
+    {
+      "id": "1795318281751-drd2o",
+      "timestamp": "2026-11-22T03:31:21.751Z",
+      "service": "MegamBD",
+      "endpoint": "player_api.php (auth)",
+      "statusCode": 200,
+      "message": "Conta MegamBD devolveu auth=0 e estado \"Disabled\" em mgeb.space."
+    }
+  ],
+  "pushSubscriptions": [],
+  "pushCampaigns": []
+}

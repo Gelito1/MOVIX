@@ -1,0 +1,192 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    --font-brand: 'Cinzel', Georgia, serif;
+    --font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
+    --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    --movix-bg: #06070B;
+    --movix-surface: #0F131E;
+    --movix-surface-elevated: #151A28;
+    --movix-gold: #E5B85A;
+    --movix-gold-bright: #F4CB73;
+    --movix-gold-deep: #B88428;
+  }
+
+  html {
+    font-family: var(--font-sans);
+    background-color: #06070B;
+    color: #F6F7FB;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: #06070B;
+    background-image: radial-gradient(ellipse 85% 40% at 50% 0%, rgba(229, 184, 90, 0.06), transparent 70%);
+    background-attachment: fixed;
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: var(--font-display);
+  }
+
+  .font-brand {
+    font-family: var(--font-brand);
+  }
+
+  .font-mono {
+    font-family: var(--font-mono);
+  }
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+/* Custom sleek obsidian scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #06070B;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1F2536;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #D9A441;
+}
+
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes movix-marquee {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.movix-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: movix-marquee 28s linear infinite;
+  will-change: transform;
+}
+
+.movix-marquee-viewport:hover .movix-marquee-track,
+.movix-marquee-viewport:focus-within .movix-marquee-track {
+  animation-play-state: paused;
+}
+
+@keyframes movix-poster-scroll-up {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(0, -50%, 0);
+  }
+}
+
+.movix-poster-col-up {
+  display: flex;
+  flex-direction: column;
+  will-change: transform;
+  animation-name: movix-poster-scroll-up;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes movix-danmaku-glide {
+  0% {
+    transform: translate3d(105%, 0, 0);
+  }
+  100% {
+    transform: translate3d(-120%, 0, 0);
+  }
+}
+
+.movix-danmaku-item {
+  animation: movix-danmaku-glide 9s linear forwards;
+  will-change: transform;
+}
+
+@keyframes movix-eq-bounce {
+  0%, 100% {
+    transform: scaleY(0.35);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+.movix-eq-bar-1 {
+  transform-origin: bottom;
+  animation: movix-eq-bounce 0.85s ease-in-out infinite;
+}
+
+.movix-eq-bar-2 {
+  transform-origin: bottom;
+  animation: movix-eq-bounce 0.65s ease-in-out 0.15s infinite;
+}
+
+.movix-eq-bar-3 {
+  transform-origin: bottom;
+  animation: movix-eq-bounce 0.95s ease-in-out 0.3s infinite;
+}
+
+.movix-cinema-range {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+}
+
+.movix-cinema-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 15px;
+  width: 15px;
+  border-radius: 9999px;
+  background: #F6F7FB;
+  border: 2px solid #E5B85A;
+  box-shadow: 0 0 10px rgba(243, 198, 105, 0.75);
+  cursor: pointer;
+}
+
+.movix-cinema-range::-moz-range-thumb {
+  height: 15px;
+  width: 15px;
+  border-radius: 9999px;
+  background: #F6F7FB;
+  border: 2px solid #E5B85A;
+  box-shadow: 0 0 10px rgba(243, 198, 105, 0.75);
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
